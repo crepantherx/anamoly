@@ -1,20 +1,23 @@
+# Use Dockerfile for faster, more reliable deployments
 FROM python:3.10-slim
 
 WORKDIR /app
 
-# Copy ML service requirements and install
+# Install dependencies first (cached layer)
 COPY requirements-ml.txt .
 RUN pip install --no-cache-dir -r requirements-ml.txt
 
-# Copy the ML service and app module
+# Copy application code
 COPY ml_service/ ./ml_service/
 COPY app/ml_engine.py ./app/
-
-# Create __init__.py for app module
-RUN mkdir -p app && touch app/__init__.py
+COPY app/__init__.py ./app/ 2>/dev/null || touch ./app/__init__.py
 
 # Expose port
-EXPOSE 8001
+EXPOSE $PORT
 
-# Run the ML service
-CMD ["uvicorn", "ml_service.ml_service:app", "--host", "0.0.0.0", "--port", "8001"]
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+  CMD python -c "import requests; requests.get('http://localhost:${PORT:-8001}/health')"
+
+# Run the service
+CMD uvicorn ml_service.ml_service:app --host 0.0.0.0 --port ${PORT:-8001}

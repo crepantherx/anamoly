@@ -27,15 +27,10 @@ app.add_middleware(
 
 @app.on_event("startup")
 async def startup_event():
-    """Initialize ML models on startup"""
+    """Service startup - models will be fitted on first prediction"""
     print("🚀 ML Service starting up...")
-    print("📊 Fitting initial model with synthetic data...")
-    try:
-        ml_engine.fit_initial_model()
-        print("✅ Models fitted successfully!")
-    except Exception as e:
-        print(f"⚠️ Warning: Could not fit initial model: {e}")
-        print("Models will be fitted on first prediction request")
+    print("📊 Models will be fitted on first prediction request")
+    print("✅ Service ready!")
 
 class PredictionRequest(BaseModel):
     amount: float
@@ -63,12 +58,17 @@ async def health_check():
 async def predict(request: PredictionRequest):
     """
     Predict anomaly for a transaction
+    Models are fitted automatically on first prediction if not already fitted.
     """
     try:
         # Parse timestamp
         timestamp = datetime.fromisoformat(request.timestamp.replace('Z', '+00:00'))
         
-        # Get predictions from all models
+        # Check if models need fitting (will happen on first prediction)
+        if not ml_engine.is_fitted:
+            print("📊 First prediction - fitting models with synthetic data...")
+        
+        # Get predictions from all models (auto-fits if needed)
         model_results, shap_json = ml_engine.predict_all(
             amount=request.amount,
             user_avg=request.user_avg,

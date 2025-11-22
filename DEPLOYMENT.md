@@ -109,6 +109,17 @@ Set environment variables in Railway dashboard:
 
 > **Note**: Render's free tier has cold starts (services sleep after 15 min of inactivity). First request may be slow.
 
+**If deployment times out:**
+
+1. **Use Docker instead** (recommended):
+   - In Render dashboard, set "Docker" as environment
+   - Use `Dockerfile.ml` 
+   - Render will build from Dockerfile (faster + more reliable)
+
+2. **Split the build**:
+   - Build timeout? Contact Render support to increase build time
+   - Or use Railway instead (more generous timeouts)
+
 #### Option C: Docker on Any Platform
 
 ```bash
@@ -194,7 +205,53 @@ Visit your Vercel URL and:
 
 ## Troubleshooting
 
-### Static Directory Error on Render
+### Deployment Timeout on Render
+
+**Error**: Build or startup timeout when installing ML dependencies
+
+**Solutions**:
+
+1. **Use Docker** (Recommended - Faster & More Reliable):
+   ```bash
+   # In Render dashboard:
+   # - Environment: Docker
+   # - Dockerfile Path: Dockerfile.ml
+   ```
+
+2. **Use Railway instead**:
+   ```bash
+   railway up
+   ```
+   Railway has more generous build timeouts and better handles ML dependencies.
+
+3. **Lazy Model Initialization** (Already implemented):
+   - Models now fit on first prediction request, not during startup
+   - This speeds up deployment significantly
+
+4. **Check Build Logs**:
+   - Look for which package takes longest to install
+   - Often: `scikit-learn`, `scipy`, `numpy`
+   - These are necessary for ML functionality
+
+### Railway Deployment (Alternative to Render)
+
+If Render keeps timing out:
+
+```bash
+# Install Railway CLI
+npm install -g @railway/cli
+
+# Login
+railway login
+
+# Deploy ML service
+railway up
+
+# Get service URL
+railway status
+```
+
+Railway is more ML-friendly and handles heavy dependencies better.
 
 **Error**: `RuntimeError: Directory 'app/static' does not exist`
 

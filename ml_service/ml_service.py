@@ -25,6 +25,18 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.on_event("startup")
+async def startup_event():
+    """Initialize ML models on startup"""
+    print("🚀 ML Service starting up...")
+    print("📊 Fitting initial model with synthetic data...")
+    try:
+        ml_engine.fit_initial_model()
+        print("✅ Models fitted successfully!")
+    except Exception as e:
+        print(f"⚠️ Warning: Could not fit initial model: {e}")
+        print("Models will be fitted on first prediction request")
+
 class PredictionRequest(BaseModel):
     amount: float
     user_avg: float
@@ -64,11 +76,16 @@ async def predict(request: PredictionRequest):
             timestamp=timestamp
         )
         
+        # Log prediction for debugging
+        is_anomaly = model_results.get("isolation_forest", {}).get("is_anomaly", False)
+        print(f"💳 Prediction: amount=${request.amount:.2f}, anomaly={is_anomaly}")
+        
         return PredictionResponse(
             model_results=model_results,
             shap_explanation=shap_json
         )
     except Exception as e:
+        print(f"❌ Prediction error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Prediction error: {str(e)}")
 
 @app.post("/api/ml/retrain")

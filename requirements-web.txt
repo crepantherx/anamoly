@@ -6,3 +6,4 @@ websockets
 python-multipart
 supabase
 httpx
+faker

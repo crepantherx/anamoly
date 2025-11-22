@@ -15,7 +15,7 @@ COPY app/ml_engine.py ./app/
 RUN mkdir -p app && touch app/__init__.py
 
 # Expose port
-EXPOSE $PORT
+EXPOSE 8000
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \

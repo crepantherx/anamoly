@@ -3,7 +3,7 @@ import random
 import datetime
 from faker import Faker
 from . import crud
-from .ml_engine import ml_engine
+from .ml_client import ml_client
 
 fake = Faker()
 
@@ -70,8 +70,8 @@ class Emulator:
                 device = fake.uuid4()
                 receiver = fake.iban() if category == 'Transfer' else fake.company()
 
-                # Predict All Models
-                model_results, shap_json = ml_engine.predict_all(amount, user['avg_transaction_amount'], location, timestamp)
+                # Predict All Models - Use ML Client (async call)
+                model_results, shap_json = await ml_client.predict_all(amount, user['avg_transaction_amount'], location, timestamp)
                 
                 # Use Isolation Forest as the "Primary" for the dashboard main view
                 primary_result = model_results.get("isolation_forest", {"is_anomaly": False, "score": 0})

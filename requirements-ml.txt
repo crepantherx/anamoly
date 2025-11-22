@@ -1,0 +1,13 @@
+fastapi
+uvicorn[standard]
+sqlalchemy
+scikit-learn
+pandas
+numpy
+jinja2
+websockets
+python-multipart
+shap
+faker
+supabase
+scipy

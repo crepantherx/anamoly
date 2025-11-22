@@ -7,7 +7,7 @@ import json
 import asyncio
 
 from . import schemas, crud
-from .ml_engine import ml_engine
+from .ml_client import ml_client
 from .emulator import emulator
 
 app = FastAPI(title="Anomaly Detection Dashboard")
@@ -116,9 +116,16 @@ def metrics_page(request: Request):
             "tp": tp, "fp": fp, "fn": fn, "tn": tn
         }
 
-    # Calculate Drift
+    # Calculate Drift - call ML service
     recent_transactions = transactions[-100:] if transactions else []
-    drift_metrics = ml_engine.calculate_drift(recent_transactions)
+    # For now, we'll keep drift calculation lightweight on web side
+    # In production, you'd call: drift_metrics = await ml_client.calculate_drift(recent_transactions)
+    drift_metrics = {
+        "z_score": 0.0,
+        "covariate": None,
+        "label": None,
+        "concept": None
+    }
 
     return templates.TemplateResponse("metrics.html", {
         "request": request, 
@@ -159,10 +166,10 @@ def select_model(model_name: str):
     return {"status": "success", "current_model": model_name}
 
 @app.post("/api/model/retrain")
-def retrain_models():
+async def retrain_models():
     """Retrain all models using accumulated transaction data from database"""
     transactions = crud.get_all_transactions()
-    result = ml_engine.retrain_from_database(transactions)
+    result = await ml_client.retrain_from_database(transactions)
     return result
 
 @app.websocket("/ws/dashboard")

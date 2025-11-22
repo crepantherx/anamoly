@@ -14,8 +14,12 @@ COPY app/ml_engine.py ./app/
 # Create __init__.py if it doesn't exist
 RUN mkdir -p app && touch app/__init__.py
 
+# Copy startup script
+COPY start-ml.sh ./
+RUN chmod +x start-ml.sh
+
 # Expose port
 EXPOSE 8001
 
-# Run the service - Railway will set PORT env var
-CMD ["sh", "-c", "uvicorn ml_service.ml_service:app --host 0.0.0.0 --port ${PORT:-8001}"]
+# Run the service
+CMD ["./start-ml.sh"]

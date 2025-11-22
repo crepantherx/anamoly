@@ -1,21 +1,24 @@
-# Render Configuration
-# https://render.com
+# Render.com configuration
+# Deploys both web service and ML service
 
-# Build command (use this in Render dashboard)
-# For Web Service (Frontend):
-pip install -r requirements-web.txt
+services:
+  # Main Website (Dashboard)
+  - type: web
+    name: anomaly-web
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    envVars:
+      - key: ML_SERVICE_URL
+        value: https://api-for-anomaly-production.up.railway.app
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_KEY
+        sync: false
 
-# For ML Service:
-pip install -r requirements-ml.txt
-
-# Start command for Web Service:
-uvicorn app.main:app --host 0.0.0.0 --port $PORT
-
-# Start command for ML Service:
-uvicorn ml_service.ml_service:app --host 0.0.0.0 --port $PORT
-
-# Environment Variables to set in Render:
-# For Web Service:
-#   ML_SERVICE_URL=<your-ml-service-url>
-#   SUPABASE_URL=<your-supabase-url>
-#   SUPABASE_KEY=<your-supabase-key>
+  # ML Prediction Service  
+  - type: web
+    name: anomaly-ml
+    runtime: docker
+    dockerfilePath: ./Dockerfile.ml
+    dockerContext: .

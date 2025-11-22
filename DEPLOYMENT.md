@@ -77,12 +77,37 @@ Set environment variables in Railway dashboard:
 
 #### Option B: Render.com
 
+**Step 1: Deploy ML Service**
+
 1. Push code to GitHub
-2. Create new "Web Service" on Render
-3. Set:
-   - Build Command: `pip install -r requirements-ml.txt`
-   - Start Command: `uvicorn ml_service.ml_service:app --host 0.0.0.0 --port 8001`
-   - Dockerfile: `Dockerfile.ml` (optional)
+2. Go to [Render.com](https://render.com) and create new "Web Service"
+3. Connect your GitHub repository
+4. Configure:
+   - **Name**: `anomaly-ml-service`
+   - **Root Directory**: Leave empty (use repo root)
+   - **Environment**: `Python 3`
+   - **Build Command**: `pip install -r requirements-ml.txt`
+   - **Start Command**: `uvicorn ml_service.ml_service:app --host 0.0.0.0 --port $PORT`
+   - **Plan**: Free tier
+5. Click "Create Web Service"
+6. Wait for deployment to complete
+7. Copy the service URL (e.g., `https://anomaly-ml-service.onrender.com`)
+
+**Step 2: Deploy Web Service (if not using Vercel)**
+
+1. Create another "Web Service" on Render
+2. Configure:
+   - **Name**: `anomaly-web-service`
+   - **Environment**: `Python 3`
+   - **Build Command**: `pip install -r requirements-web.txt`
+   - **Start Command**: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
+3. Set environment variables:
+   - `ML_SERVICE_URL`: Your ML service URL from Step 1
+   - `SUPABASE_URL`: Your Supabase project URL
+   - `SUPABASE_KEY`: Your Supabase API key
+4. Deploy
+
+> **Note**: Render's free tier has cold starts (services sleep after 15 min of inactivity). First request may be slow.
 
 #### Option C: Docker on Any Platform
 
@@ -168,6 +193,17 @@ Visit your Vercel URL and:
 5. Test metrics page
 
 ## Troubleshooting
+
+### Static Directory Error on Render
+
+**Error**: `RuntimeError: Directory 'app/static' does not exist`
+
+**Solution**: The code now handles this automatically. Make sure you've:
+1. Committed the `app/static/` directory to git
+2. Pushed latest changes: `git add . && git commit -m "Add static directory" && git push`
+3. Redeployed on Render
+
+The app will now start even if the static directory is missing (with a warning).
 
 ### ML Service Connection Issues
 

@@ -1,0 +1,21 @@
+# Render Configuration
+# https://render.com
+
+# Build command (use this in Render dashboard)
+# For Web Service (Frontend):
+pip install -r requirements-web.txt
+
+# For ML Service:
+pip install -r requirements-ml.txt
+
+# Start command for Web Service:
+uvicorn app.main:app --host 0.0.0.0 --port $PORT
+
+# Start command for ML Service:
+uvicorn ml_service.ml_service:app --host 0.0.0.0 --port $PORT
+
+# Environment Variables to set in Render:
+# For Web Service:
+#   ML_SERVICE_URL=<your-ml-service-url>
+#   SUPABASE_URL=<your-supabase-url>
+#   SUPABASE_KEY=<your-supabase-key>

@@ -5,6 +5,7 @@ from fastapi.templating import Jinja2Templates
 from typing import List
 import json
 import asyncio
+import os
 
 from . import schemas, crud
 from .ml_client import ml_client
@@ -12,7 +13,13 @@ from .emulator import emulator
 
 app = FastAPI(title="Anomaly Detection Dashboard")
 
-app.mount("/static", StaticFiles(directory="app/static"), name="static")
+# Mount static files only if directory exists
+static_dir = "app/static"
+if os.path.exists(static_dir) and os.path.isdir(static_dir):
+    app.mount("/static", StaticFiles(directory=static_dir), name="static")
+else:
+    print(f"Warning: Static directory '{static_dir}' not found, skipping static files")
+
 templates = Jinja2Templates(directory="app/templates")
 
 # WebSocket Connection Manager

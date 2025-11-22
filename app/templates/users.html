@@ -24,7 +24,12 @@
             <tbody class="bg-gray-800 divide-y divide-gray-700">
                 {% for user in users %}
                 <tr class="hover:bg-gray-750 transition">
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">{{ user.name }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">
+                        <a href="/users/{{ user.id }}"
+                            class="text-teal-400 hover:text-teal-300 hover:underline transition">
+                            {{ user.name }}
+                        </a>
+                    </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400 font-mono">{{ user.account_number }}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400">{{ user.email }}</td>

@@ -29,3 +29,11 @@ def get_all_transactions():
 def get_transaction_by_id(tx_id: int):
     data = supabase.table("transactions").select("*").eq("id", tx_id).execute()
     return data.data[0] if data.data else None
+
+def get_transactions_by_user(user_id: int):
+    data = supabase.table("transactions").select("*").eq("user_id", user_id).order("timestamp", desc=True).execute()
+    return data.data
+
+def get_user_by_id(user_id: int):
+    data = supabase.table("users").select("*").eq("id", user_id).execute()
+    return data.data[0] if data.data else None

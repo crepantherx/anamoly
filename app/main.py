@@ -50,6 +50,12 @@ async def users_page(request: Request):
     users = crud.get_all_users()
     return templates.TemplateResponse("users.html", {"request": request, "users": users})
 
+@app.get("/users/{user_id}", response_class=HTMLResponse)
+async def user_details_page(request: Request, user_id: int):
+    user = crud.get_user_by_id(user_id)
+    transactions = crud.get_transactions_by_user(user_id)
+    return templates.TemplateResponse("user_details.html", {"request": request, "user": user, "transactions": transactions})
+
 @app.get("/api/explain/{tx_id}")
 def get_explanation(tx_id: int):
     tx = crud.get_transaction_by_id(tx_id)

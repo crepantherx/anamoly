@@ -158,6 +158,13 @@ def select_model(model_name: str):
     # For now, we just return success as the backend runs all anyway
     return {"status": "success", "current_model": model_name}
 
+@app.post("/api/model/retrain")
+def retrain_models():
+    """Retrain all models using accumulated transaction data from database"""
+    transactions = crud.get_all_transactions()
+    result = ml_engine.retrain_from_database(transactions)
+    return result
+
 @app.websocket("/ws/dashboard")
 async def websocket_endpoint(websocket: WebSocket):
     await manager.connect(websocket)

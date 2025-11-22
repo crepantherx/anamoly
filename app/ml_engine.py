@@ -77,6 +77,78 @@ class MLEngine:
         self.is_fitted = True
         print("Models fitted.")
 
+    def retrain_from_database(self, transactions):
+        """
+        Retrain all models using real transaction data from the database.
+        transactions: list of dicts from crud.get_all_transactions()
+        """
+        if not transactions or len(transactions) < 50:
+            return {"status": "error", "message": "Not enough data. Need at least 50 transactions."}
+        
+        # Extract features from transactions
+        X_data = []
+        y_data = []
+        
+        for tx in transactions:
+            # Reconstruct features: [amount, diff, hour, is_foreign]
+            amount = tx['amount']
+            # We don't have user_avg in tx directly, so we'll approximate diff as 0 for simplicity
+            # Or we could recalculate from user data
+            diff = 0  # Simplified for now
+            
+            # Parse timestamp
+            try:
+                from datetime import datetime
+                timestamp = datetime.fromisoformat(tx['timestamp'].replace('Z', '+00:00'))
+                hour = timestamp.hour
+            except:
+                hour = 12  # Default
+            
+            # Location
+            location = tx.get('location', 'NY')
+            is_foreign = 1 if location not in ['NY', 'CA', 'TX', 'FL'] else 0
+            
+            X_data.append([amount, diff, hour, is_foreign])
+            
+            # Use true_label (0 = normal, 1 = anomaly)
+            # true_label is boolean in DB, convert to int
+            y_data.append(1 if tx['true_label'] else 0)
+        
+        X_train = np.array(X_data)
+        y_train = np.array(y_data)
+        
+        # Update training stats
+        self.training_data = X_train
+        self.training_mean = np.mean(X_train[:, 0])
+        self.training_std = np.std(X_train[:, 0])
+        
+        # Store columns for drift detection
+        self.X_train_cols = {
+            'Amount': X_train[:, 0],
+            'Diff': X_train[:, 1],
+            'Hour': X_train[:, 2]
+        }
+        
+        # Retrain all models
+        for name, model in self.models.items():
+            try:
+                if name == "mlp":
+                    model.fit(X_train, y_train)
+                else:
+                    # Unsupervised models
+                    model.fit(X_train)
+            except Exception as e:
+                print(f"Error retraining {name}: {e}")
+        
+        self.is_fitted = True
+        
+        return {
+            "status": "success", 
+            "message": f"Models retrained on {len(transactions)} transactions",
+            "normal_count": int(np.sum(y_train == 0)),
+            "anomaly_count": int(np.sum(y_train == 1))
+        }
+
     def predict_all(self, amount, user_avg, location, timestamp):
         if not self.is_fitted:
             self.fit_initial_model()

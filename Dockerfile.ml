@@ -7,10 +7,12 @@ WORKDIR /app
 COPY requirements-ml.txt .
 RUN pip install --no-cache-dir -r requirements-ml.txt
 
-# Copy application code
+# Copy the ML service and app module
 COPY ml_service/ ./ml_service/
 COPY app/ml_engine.py ./app/
-COPY app/__init__.py ./app/ 2>/dev/null || touch ./app/__init__.py
+
+# Create __init__.py if it doesn't exist
+RUN mkdir -p app && touch app/__init__.py
 
 # Expose port
 EXPOSE $PORT

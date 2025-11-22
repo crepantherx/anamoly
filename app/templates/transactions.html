@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block title %}Transactions - Anomaly Detection{% endblock %}
+
+{% block content %}
+<div class="p-6">
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold">Transaction History</h2>
+        <button onclick="location.reload()"
+            class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded transition">
+            Refresh Data
+        </button>
+    </div>
+
+    <div class="bg-gray-800 rounded-lg shadow overflow-hidden border border-gray-700">
+        <table class="min-w-full divide-y divide-gray-700">
+            <thead class="bg-gray-700">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Time</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">User</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Amount
+                    </th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Category
+                    </th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Location
+                    </th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Status
+                    </th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Action
+                    </th>
+                </tr>
+            </thead>
+            <tbody class="bg-gray-800 divide-y divide-gray-700">
+                {% for tx in transactions %}
+                <tr class="hover:bg-gray-750 transition">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{{ tx.timestamp.strftime('%H:%M:%S')
+                        }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">{{ tx.user.name }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">${{ "%.2f"|format(tx.amount)
+                        }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400">{{ tx.category }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400">{{ tx.location }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        {% if tx.is_anomaly %}
+                        <span
+                            class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-900 text-red-200">
+                            Anomaly
+                        </span>
+                        {% else %}
+                        <span
+                            class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-900 text-green-200">
+                            Normal
+                        </span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400">
+                        {% if tx.is_anomaly %}
+                        <button onclick="explainTx({{ tx.id }})"
+                            class="text-teal-400 hover:text-teal-300 underline">Explain</button>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Explain Modal -->
+<div id="explain-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+    <div class="bg-gray-800 p-6 rounded-lg shadow-xl max-w-md w-full border border-gray-700">
+        <h3 class="text-xl font-bold mb-4 text-teal-400">Anomaly Explanation</h3>
+        <div id="explanation-content" class="space-y-2 text-gray-300">
+            Loading...
+        </div>
+        <button onclick="closeModal()"
+            class="mt-6 bg-gray-700 hover:bg-gray-600 text-white py-2 px-4 rounded w-full">Close</button>
+    </div>
+</div>
+
+<script>
+    async function explainTx(id) {
+        document.getElementById('explain-modal').classList.remove('hidden');
+        document.getElementById('explanation-content').innerHTML = 'Loading...';
+
+        const res = await fetch(`/api/explain/${id}`);
+        const data = await res.json();
+
+        let html = '<ul class="list-disc list-inside">';
+        for (const [feature, value] of Object.entries(data.shap)) {
+            const color = value > 0 ? 'text-red-400' : 'text-green-400';
+            const impact = value > 0 ? 'Increases Risk' : 'Decreases Risk';
+            html += `<li><span class="font-bold">${feature}:</span> <span class="${color}">${impact}</span> (${value.toFixed(4)})</li>`;
+        }
+        html += '</ul>';
+
+        document.getElementById('explanation-content').innerHTML = html;
+    }
+
+    function closeModal() {
+        document.getElementById('explain-modal').classList.add('hidden');
+    }
+</script>
+{% endblock %}

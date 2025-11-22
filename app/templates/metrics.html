@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}Model Metrics - Anomaly Detection{% endblock %}
+
+{% block content %}
+<div class="p-6 space-y-6">
+    <h2 class="text-2xl font-bold">Model Performance Metrics</h2>
+    <p class="text-gray-400">Metrics are calculated based on the emulator's "ground truth" (whether a transaction was
+        intentionally generated as an anomaly).</p>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="bg-gray-800 p-6 rounded-lg border border-gray-700">
+            <div class="text-sm text-gray-400 uppercase">Precision</div>
+            <div class="text-3xl font-bold text-blue-400 mt-2">{{ "%.2f"|format(metrics.precision * 100) }}%</div>
+        </div>
+        <div class="bg-gray-800 p-6 rounded-lg border border-gray-700">
+            <div class="text-sm text-gray-400 uppercase">Recall</div>
+            <div class="text-3xl font-bold text-purple-400 mt-2">{{ "%.2f"|format(metrics.recall * 100) }}%</div>
+        </div>
+        <div class="bg-gray-800 p-6 rounded-lg border border-gray-700">
+            <div class="text-sm text-gray-400 uppercase">F1 Score</div>
+            <div class="text-3xl font-bold text-teal-400 mt-2">{{ "%.2f"|format(metrics.f1 * 100) }}%</div>
+        </div>
+        <div class="bg-gray-800 p-6 rounded-lg border border-gray-700">
+            <div class="text-sm text-gray-400 uppercase">Evaluated Samples</div>
+            <div class="text-3xl font-bold text-gray-200 mt-2">{{ metrics.total_samples }}</div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="bg-gray-800 p-6 rounded-lg border border-gray-700">
+            <h3 class="text-lg font-semibold mb-4">Confusion Matrix</h3>
+            <div class="grid grid-cols-2 gap-4 text-center">
+                <div class="bg-gray-700 p-4 rounded">
+                    <div class="text-xs text-gray-400">True Positives</div>
+                    <div class="text-2xl font-bold text-green-400">{{ metrics.tp }}</div>
+                </div>
+                <div class="bg-gray-700 p-4 rounded">
+                    <div class="text-xs text-gray-400">False Positives</div>
+                    <div class="text-2xl font-bold text-red-400">{{ metrics.fp }}</div>
+                </div>
+                <div class="bg-gray-700 p-4 rounded">
+                    <div class="text-xs text-gray-400">False Negatives</div>
+                    <div class="text-2xl font-bold text-red-400">{{ metrics.fn }}</div>
+                </div>
+                <div class="bg-gray-700 p-4 rounded">
+                    <div class="text-xs text-gray-400">True Negatives</div>
+                    <div class="text-2xl font-bold text-green-400">{{ metrics.tn }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-gray-800 p-6 rounded-lg border border-gray-700">
+            <h3 class="text-lg font-semibold mb-4">Metric Definitions</h3>
+            <ul class="space-y-2 text-sm text-gray-300">
+                <li><strong class="text-teal-400">Precision:</strong> Of all transactions predicted as anomalies, how
+                    many were actually anomalies?</li>
+                <li><strong class="text-teal-400">Recall:</strong> Of all actual anomalies, how many did we correctly
+                    detect?</li>
+                <li><strong class="text-teal-400">F1 Score:</strong> Harmonic mean of Precision and Recall.</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

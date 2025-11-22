@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Anomaly Detection Dashboard{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script
+        src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <style>
+        /* Custom scrollbar for cyberpunk feel */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #1a202c;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #4a5568;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #718096;
+        }
+    </style>
+    {% block head %}{% endblock %}
+</head>
+
+<body class="bg-gray-900 text-gray-100 font-sans antialiased">
+
+    <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar -->
+        <aside class="w-64 bg-gray-800 border-r border-gray-700 flex flex-col">
+            <div class="p-6 border-b border-gray-700">
+                <h1 class="text-2xl font-bold text-teal-400 tracking-wider">ANOMALY<br>DETECTOR</h1>
+            </div>
+            <nav class="flex-1 p-4 space-y-2">
+                <a href="/"
+                    class="block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700 {% if request.url.path == '/' %}bg-gray-700 text-white{% else %}text-gray-400{% endif %}">
+                    Dashboard
+                </a>
+                <a href="/users"
+                    class="block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700 {% if request.url.path == '/users' %}bg-gray-700 text-white{% else %}text-gray-400{% endif %}">
+                    Users
+                </a>
+                <a href="/transactions"
+                    class="block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700 {% if request.url.path == '/transactions' %}bg-gray-700 text-white{% else %}text-gray-400{% endif %}">
+                    Transactions
+                </a>
+                <a href="/metrics"
+                    class="block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700 {% if request.url.path == '/metrics' %}bg-gray-700 text-white{% else %}text-gray-400{% endif %}">
+                    Model Metrics
+                </a>
+                <a href="/explainability"
+                    class="block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700 {% if request.url.path == '/explainability' %}bg-gray-700 text-white{% else %}text-gray-400{% endif %}">
+                    Explainability
+                </a>
+                <a href="/design"
+                    class="block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700 {% if request.url.path == '/design' %}bg-gray-700 text-white{% else %}text-gray-400{% endif %}">
+                    System Design
+                </a>
+            </nav>
+            <div class="p-4 border-t border-gray-700">
+                <div class="text-xs text-gray-500">System Status: <span id="sys-status"
+                        class="text-green-400">Online</span></div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 flex flex-col overflow-y-auto">
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    {% block scripts %}{% endblock %}
+</body>
+
+</html>

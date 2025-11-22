@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block title %}System Design - Anomaly Detection{% endblock %}
+
+{% block content %}
+<div class="p-6 max-w-5xl mx-auto">
+    <h2 class="text-3xl font-bold text-teal-400 mb-8">System Architecture</h2>
+
+    <div class="bg-gray-800 p-8 rounded-lg border border-gray-700 shadow-lg">
+        <div class="flex flex-col md:flex-row items-center justify-center space-y-8 md:space-y-0 md:space-x-12">
+
+            <!-- Emulator -->
+            <div class="flex flex-col items-center">
+                <div
+                    class="w-32 h-32 bg-blue-900/50 border-2 border-blue-500 rounded-lg flex items-center justify-center text-center p-2 shadow-[0_0_15px_rgba(59,130,246,0.5)]">
+                    <div>
+                        <div class="font-bold text-blue-300">Emulator</div>
+                        <div class="text-xs text-blue-200 mt-1">Generates Tx</div>
+                    </div>
+                </div>
+                <div class="h-8 w-0.5 bg-gray-500 my-2"></div>
+                <div class="text-xs text-gray-500">Async Task</div>
+            </div>
+
+            <!-- Arrow -->
+            <div class="hidden md:block text-gray-500 text-2xl">→</div>
+
+            <!-- Backend -->
+            <div class="flex flex-col items-center">
+                <div
+                    class="w-40 h-40 bg-teal-900/50 border-2 border-teal-500 rounded-full flex items-center justify-center text-center p-4 shadow-[0_0_20px_rgba(20,184,166,0.5)]">
+                    <div>
+                        <div class="font-bold text-teal-300">FastAPI Backend</div>
+                        <div class="text-xs text-teal-200 mt-2">ML Engine</div>
+                        <div class="text-xs text-teal-200">DB Handling</div>
+                        <div class="text-xs text-teal-200">WebSocket Mgr</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Arrow -->
+            <div class="hidden md:block text-gray-500 text-2xl">↔</div>
+
+            <!-- DB -->
+            <div class="flex flex-col items-center">
+                <div
+                    class="w-24 h-32 bg-yellow-900/50 border-2 border-yellow-500 rounded-lg flex items-center justify-center text-center p-2 shadow-[0_0_15px_rgba(234,179,8,0.5)]">
+                    <div>
+                        <div class="font-bold text-yellow-300">SQLite DB</div>
+                        <div class="text-xs text-yellow-200 mt-1">Persistence</div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="flex justify-center my-8">
+            <div class="h-16 w-0.5 bg-gray-500"></div>
+        </div>
+
+        <!-- Frontend -->
+        <div class="flex justify-center">
+            <div
+                class="w-64 h-24 bg-purple-900/50 border-2 border-purple-500 rounded-lg flex items-center justify-center text-center p-4 shadow-[0_0_15px_rgba(168,85,247,0.5)]">
+                <div>
+                    <div class="font-bold text-purple-300">Frontend Dashboard</div>
+                    <div class="text-xs text-purple-200 mt-1">Jinja2 + Tailwind + Chart.js</div>
+                    <div class="text-xs text-purple-200">Real-time WebSockets</div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="mt-12 grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div class="bg-gray-800 p-6 rounded-lg border border-gray-700">
+            <h3 class="text-xl font-semibold mb-4 text-teal-400">Data Flow</h3>
+            <ol class="list-decimal list-inside text-gray-300 space-y-2">
+                <li><strong>Emulator</strong> creates a transaction (Normal or Anomaly).</li>
+                <li><strong>ML Engine</strong> predicts score and class using the active model.</li>
+                <li>Result is saved to <strong>SQLite Database</strong>.</li>
+                <li><strong>WebSocket Manager</strong> broadcasts the new data point.</li>
+                <li><strong>Frontend</strong> receives JSON and updates charts/stats instantly.</li>
+            </ol>
+        </div>
+
+        <div class="bg-gray-800 p-6 rounded-lg border border-gray-700">
+            <h3 class="text-xl font-semibold mb-4 text-teal-400">Tech Stack</h3>
+            <ul class="list-disc list-inside text-gray-300 space-y-2">
+                <li><strong>Language:</strong> Python 3.10</li>
+                <li><strong>Framework:</strong> FastAPI (High performance async)</li>
+                <li><strong>ML Libraries:</strong> Scikit-Learn, NumPy</li>
+                <li><strong>Database:</strong> SQLAlchemy ORM + SQLite</li>
+                <li><strong>Frontend:</strong> TailwindCSS, Chart.js</li>
+                <li><strong>Deployment:</strong> Docker & Docker Compose</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

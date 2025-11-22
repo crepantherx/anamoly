@@ -17,9 +17,5 @@ RUN mkdir -p app && touch app/__init__.py
 # Expose port
 EXPOSE 8001
 
-# Health check - using port 8001 as default
-HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-  CMD python -c "import requests; requests.get('http://localhost:8001/health')"
-
 # Run the service - Railway will set PORT env var
-CMD uvicorn ml_service.ml_service:app --host 0.0.0.0 --port ${PORT:-8001}
+CMD ["sh", "-c", "uvicorn ml_service.ml_service:app --host 0.0.0.0 --port ${PORT:-8001}"]

@@ -33,9 +33,10 @@
             <tbody class="bg-gray-800 divide-y divide-gray-700">
                 {% for tx in transactions %}
                 <tr class="hover:bg-gray-750 transition">
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{{ tx.timestamp.strftime('%H:%M:%S')
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{{ tx.timestamp[:19].replace('T', ' ')
                         }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">{{ tx.user.name }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">{{ tx.users.name if tx.users
+                        else 'Unknown' }}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">${{ "%.2f"|format(tx.amount)
                         }}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400">{{ tx.category }}</td>

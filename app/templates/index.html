@@ -1,89 +1,180 @@
 {% extends "base.html" %}
 
 {% block content %}
-<!-- Top Bar -->
-<header class="bg-gray-800 border-b border-gray-700 p-4 flex justify-between items-center">
-    <h2 class="text-xl font-semibold">Live Transaction Monitor</h2>
-    <div class="flex items-center space-x-4">
-        <select id="model-select"
-            class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-teal-500 focus:border-teal-500 block w-full p-2.5">
-            <option value="isolation_forest">Isolation Forest</option>
-            <option value="lof">Local Outlier Factor</option>
-            <option value="one_class_svm">One-Class SVM</option>
-            <option value="elliptic_envelope">Robust Covariance</option>
-        </select>
-        <button id="toggle-emulation"
-            class="bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition">
-            Start Emulation
-        </button>
+<div class="p-8 space-y-8">
+    <!-- Header -->
+    <div class="flex justify-between items-center">
+        <div>
+            <h2 class="text-3xl font-bold text-white tracking-tight">Live Dashboard</h2>
+            <p class="text-gray-400 mt-1">Real-time anomaly detection stream</p>
+        </div>
+        <div class="flex space-x-4">
+            <select id="model-select"
+                class="bg-black/30 border border-white/10 text-white text-sm rounded-lg focus:ring-teal-500 focus:border-teal-500 block p-2.5 backdrop-blur-sm">
+                <option value="isolation_forest">Isolation Forest</option>
+                <option value="lof">Local Outlier Factor</option>
+                <option value="one_class_svm">One-Class SVM</option>
+                <option value="elliptic_envelope">Robust Covariance</option>
+            </select>
+            <button id="emulation-btn" onclick="toggleEmulation()"
+                class="bg-teal-500 hover:bg-teal-400 text-black font-bold py-2 px-6 rounded-lg shadow-[0_0_15px_rgba(45,212,191,0.3)] transition duration-300 flex items-center">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z">
+                    </path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                Start Emulation
+            </button>
+        </div>
     </div>
-</header>
-
-<!-- Dashboard Content -->
-<div class="p-6 space-y-6">
 
     <!-- Stats Cards -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div class="bg-gray-800 rounded-lg p-6 border border-gray-700 shadow-lg">
-            <div class="text-gray-400 text-sm uppercase font-semibold">Total Transactions</div>
-            <div class="text-3xl font-bold mt-2" id="total-tx">0</div>
+        <div class="glass p-6 rounded-xl border border-white/10 relative overflow-hidden group">
+            <div
+                class="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-blue-500/10 rounded-full blur-2xl group-hover:bg-blue-500/20 transition duration-500">
+            </div>
+            <div class="text-sm text-gray-400 uppercase tracking-wider font-medium">Total Transactions</div>
+            <div class="text-4xl font-bold text-white mt-2" id="total-tx">0</div>
         </div>
-        <div class="bg-gray-800 rounded-lg p-6 border border-gray-700 shadow-lg">
-            <div class="text-gray-400 text-sm uppercase font-semibold">Anomalies Detected</div>
-            <div class="text-3xl font-bold mt-2 text-red-500" id="total-anomalies">0</div>
+        <div class="glass p-6 rounded-xl border border-white/10 relative overflow-hidden group">
+            <div
+                class="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-red-500/10 rounded-full blur-2xl group-hover:bg-red-500/20 transition duration-500">
+            </div>
+            <div class="text-sm text-gray-400 uppercase tracking-wider font-medium">Anomalies Detected</div>
+            <div class="text-4xl font-bold text-red-400 mt-2" id="total-anomalies">0</div>
         </div>
-        <div class="bg-gray-800 rounded-lg p-6 border border-gray-700 shadow-lg">
-            <div class="text-gray-400 text-sm uppercase font-semibold">Anomaly Rate</div>
-            <div class="text-3xl font-bold mt-2 text-yellow-500" id="anomaly-rate">0%</div>
+        <div class="glass p-6 rounded-xl border border-white/10 relative overflow-hidden group">
+            <div
+                class="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-teal-500/10 rounded-full blur-2xl group-hover:bg-teal-500/20 transition duration-500">
+            </div>
+            <div class="text-sm text-gray-400 uppercase tracking-wider font-medium">Anomaly Rate</div>
+            <div class="text-4xl font-bold text-teal-400 mt-2" id="anomaly-rate">0%</div>
         </div>
     </div>
 
     <!-- Charts -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div class="bg-gray-800 rounded-lg p-4 border border-gray-700 shadow-lg lg:col-span-2">
-            <h3 class="text-lg font-semibold mb-4">Transaction Stream</h3>
+        <div class="glass rounded-xl p-6 border border-white/10 shadow-lg lg:col-span-2">
+            <h3 class="text-lg font-semibold mb-4 text-white">Transaction Stream</h3>
             <div class="relative w-full" style="height: 400px;">
                 <canvas id="txChart"></canvas>
             </div>
         </div>
-        <div class="bg-gray-800 rounded-lg p-4 border border-gray-700 shadow-lg overflow-hidden flex flex-col"
+        <div class="glass rounded-xl p-6 border border-white/10 shadow-lg overflow-hidden flex flex-col"
             style="height: 450px;">
-            <h3 class="text-lg font-semibold mb-4">Recent Alerts</h3>
-            <div class="overflow-y-auto flex-1" id="alerts-feed">
+            <h3 class="text-lg font-semibold mb-4 text-white">Recent Alerts</h3>
+            <div class="overflow-y-auto flex-1 space-y-3 pr-2 custom-scrollbar" id="alerts-feed">
                 <!-- Alerts will be injected here -->
-                <div class="text-gray-500 text-sm text-center mt-10">No anomalies yet...</div>
+                <div class="text-gray-500 text-sm text-center mt-10 italic">Waiting for data...</div>
             </div>
         </div>
     </div>
-
 </div>
 {% endblock %}
 
 {% block scripts %}
 <script>
-    // --- State ---
-    let isEmulating = false;
     let totalTx = 0;
     let totalAnomalies = 0;
+    let isEmulating = false;
+
+    // --- Initial Fetch ---
+    async function fetchStats() {
+        try {
+            const res = await fetch('/api/stats');
+            const data = await res.json();
+            totalTx = data.total_transactions;
+            totalAnomalies = data.total_anomalies;
+            updateStatsUI();
+        } catch (e) { console.error("Failed to fetch stats", e); }
+    }
+
+    // Fetch recent alerts on load
+    async function fetchRecentAlerts() {
+        try {
+            const res = await fetch('/transactions'); // This returns HTML, we need an API for JSON
+            // For now, let's just rely on stats. 
+            // Ideally we should have /api/transactions?limit=10
+        } catch (e) { }
+    }
+
+    function updateStatsUI() {
+        document.getElementById('total-tx').innerText = totalTx;
+        document.getElementById('total-anomalies').innerText = totalAnomalies;
+        const rate = totalTx > 0 ? ((totalAnomalies / totalTx) * 100).toFixed(2) : 0;
+        document.getElementById('anomaly-rate').innerText = rate + '%';
+    }
+
+    fetchStats();
+
+    // --- Emulation Control ---
+    const btn = document.getElementById('emulation-btn');
+
+    async function checkEmulationStatus() {
+        // Since we don't have a direct status API, we infer from stats or add a status endpoint.
+        // For now, let's assume if we have recent data (last 5 seconds), it's running.
+        // Better approach: Add a status endpoint to main.py
+        try {
+            const res = await fetch('/api/emulation/status');
+            if (res.ok) {
+                const data = await res.json();
+                isEmulating = data.status === 'running';
+                updateButtonState();
+            }
+        } catch (e) { }
+    }
+
+    function updateButtonState() {
+        if (isEmulating) {
+            btn.innerHTML = `<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"></path></svg> Stop Emulation`;
+            btn.classList.remove('bg-teal-500', 'hover:bg-teal-400', 'text-black');
+            btn.classList.add('bg-red-500', 'hover:bg-red-400', 'text-white');
+        } else {
+            btn.innerHTML = `<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Start Emulation`;
+            btn.classList.remove('bg-red-500', 'hover:bg-red-400', 'text-white');
+            btn.classList.add('bg-teal-500', 'hover:bg-teal-400', 'text-black');
+        }
+    }
+
+    async function toggleEmulation() {
+        if (!isEmulating) {
+            const res = await fetch('/api/emulation/start', { method: 'POST' });
+            if (res.ok) {
+                isEmulating = true;
+                updateButtonState();
+            }
+        } else {
+            const res = await fetch('/api/emulation/stop', { method: 'POST' });
+            if (res.ok) {
+                isEmulating = false;
+                updateButtonState();
+            }
+        }
+    }
+
+    checkEmulationStatus();
 
     // --- Chart Setup ---
     const ctx = document.getElementById('txChart').getContext('2d');
     const txChart = new Chart(ctx, {
-        type: 'scatter', // Better for discrete events
+        type: 'scatter',
         data: {
             datasets: [{
                 label: 'Normal',
                 data: [],
-                backgroundColor: '#38b2ac', // Teal 400
-                pointRadius: 4,
-                pointHoverRadius: 6
+                backgroundColor: '#2dd4bf', // Teal 400
+                pointRadius: 3,
+                pointHoverRadius: 5
             },
             {
                 label: 'Anomalies',
                 data: [],
-                backgroundColor: '#f56565', // Red 500
-                pointRadius: 8,
-                pointHoverRadius: 10,
+                backgroundColor: '#f87171', // Red 400
+                pointRadius: 6,
+                pointHoverRadius: 8,
                 pointStyle: 'rectRot'
             }]
         },
@@ -95,45 +186,26 @@
                     type: 'time',
                     time: {
                         unit: 'second',
-                        displayFormats: {
-                            second: 'HH:mm:ss'
-                        }
+                        displayFormats: { second: 'HH:mm:ss' }
                     },
-                    grid: {
-                        color: '#2d3748'
-                    },
-                    ticks: {
-                        color: '#a0aec0'
-                    },
-                    title: {
-                        display: true,
-                        text: 'Time (UTC)',
-                        color: '#718096'
-                    }
+                    grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                    ticks: { color: '#a3a3a3' },
+                    title: { display: true, text: 'Time (UTC)', color: '#737373' }
                 },
                 y: {
-                    grid: {
-                        color: '#2d3748'
-                    },
-                    ticks: {
-                        color: '#a0aec0'
-                    },
-                    title: {
-                        display: true,
-                        text: 'Transaction Amount ($)',
-                        color: '#718096'
-                    },
+                    grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                    ticks: { color: '#a3a3a3' },
+                    title: { display: true, text: 'Amount ($)', color: '#737373' },
                     suggestedMin: 0,
                     suggestedMax: 1000
                 }
             },
             plugins: {
-                legend: {
-                    labels: {
-                        color: '#cbd5e0'
-                    }
-                },
+                legend: { labels: { color: '#e5e5e5' } },
                 tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    titleColor: '#fff',
+                    bodyColor: '#ccc',
                     callbacks: {
                         label: function (context) {
                             const pt = context.raw;
@@ -159,10 +231,7 @@
         // Update Stats
         totalTx++;
         if (data.is_anomaly) totalAnomalies++;
-
-        document.getElementById('total-tx').innerText = totalTx;
-        document.getElementById('total-anomalies').innerText = totalAnomalies;
-        document.getElementById('anomaly-rate').innerText = ((totalAnomalies / totalTx) * 100).toFixed(2) + '%';
+        updateStatsUI();
 
         // Update Chart
         const time = new Date(data.timestamp);
@@ -175,23 +244,18 @@
             txChart.data.datasets[0].data.push(point);
         }
 
-        // Keep chart window fixed size (e.g., last 50 points total)
+        // Sliding Window (50 points)
         const maxPoints = 50;
         const totalPoints = txChart.data.datasets[0].data.length + txChart.data.datasets[1].data.length;
 
         if (totalPoints > maxPoints) {
-            // Remove oldest
             const d0 = txChart.data.datasets[0].data[0];
             const d1 = txChart.data.datasets[1].data[0];
-
             if (d0 && d1) {
                 if (d0.x < d1.x) txChart.data.datasets[0].data.shift();
                 else txChart.data.datasets[1].data.shift();
-            } else if (d0) {
-                txChart.data.datasets[0].data.shift();
-            } else if (d1) {
-                txChart.data.datasets[1].data.shift();
-            }
+            } else if (d0) txChart.data.datasets[0].data.shift();
+            else if (d1) txChart.data.datasets[1].data.shift();
         }
 
         txChart.update();
@@ -200,12 +264,8 @@
     function addAlert(data) {
         const feed = document.getElementById('alerts-feed');
         const alertDiv = document.createElement('div');
-        alertDiv.className = "bg-red-900/30 border-l-4 border-red-500 p-3 mb-2 rounded animate-pulse";
+        alertDiv.className = 'bg-red-500/10 border-l-4 border-red-500 p-3 rounded-r-lg flex justify-between items-start animate-fade-in';
         alertDiv.innerHTML = `
-            <div class="flex justify-between">
-                <span class="text-red-400 font-bold">ANOMALY DETECTED</span>
-                <span class="text-xs text-gray-400">${new Date(data.timestamp).toLocaleTimeString()}</span>
-            </div>
             <div class="text-sm text-gray-300 mt-1">Amount: $${data.amount}</div>
             <div class="text-xs text-gray-500 mt-1">Score: ${data.score} | Loc: ${data.location}</div>
         `;

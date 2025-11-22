@@ -141,6 +141,10 @@ def stop_emulation():
     emulator.stop_emulation()
     return {"status": "stopped"}
 
+@app.get("/api/emulation/status")
+def get_emulation_status():
+    return {"status": "running" if emulator.is_running else "stopped"}
+
 @app.post("/api/model/select")
 def select_model(model_name: str):
     # With multi-model tracking, this just changes the "Primary" model for the dashboard view

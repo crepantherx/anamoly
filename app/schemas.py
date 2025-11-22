@@ -15,9 +15,6 @@ class User(UserBase):
     id: int
     risk_score: float
 
-    class Config:
-        orm_mode = True
-
 class TransactionBase(BaseModel):
     amount: float
     location: str
@@ -38,9 +35,6 @@ class Transaction(TransactionBase):
     shap_explanation: Optional[str] = None
     
     user: Optional[User] = None
-
-    class Config:
-        orm_mode = True
 
 class Stats(BaseModel):
     total_transactions: int

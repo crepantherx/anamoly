@@ -2,16 +2,13 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request, Depends, B
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from sqlalchemy.orm import Session
 from typing import List
 import json
 import asyncio
 
-from . import models, schemas, database
+from . import schemas, crud
 from .ml_engine import ml_engine
 from .emulator import emulator
-
-models.Base.metadata.create_all(bind=database.engine)
 
 app = FastAPI(title="Anomaly Detection Dashboard")
 
@@ -44,66 +41,85 @@ async def read_root(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
 @app.get("/transactions", response_class=HTMLResponse)
-async def transactions_page(request: Request, db: Session = Depends(database.get_db)):
-    transactions = db.query(models.Transaction).join(models.User).order_by(models.Transaction.timestamp.desc()).limit(100).all()
+async def transactions_page(request: Request):
+    transactions = crud.get_recent_transactions(100)
     return templates.TemplateResponse("transactions.html", {"request": request, "transactions": transactions})
 
 @app.get("/users", response_class=HTMLResponse)
-async def users_page(request: Request, db: Session = Depends(database.get_db)):
-    users = db.query(models.User).all()
+async def users_page(request: Request):
+    users = crud.get_all_users()
     return templates.TemplateResponse("users.html", {"request": request, "users": users})
 
 @app.get("/api/explain/{tx_id}")
-def get_explanation(tx_id: int, db: Session = Depends(database.get_db)):
-    tx = db.query(models.Transaction).filter(models.Transaction.id == tx_id).first()
+def get_explanation(tx_id: int):
+    tx = crud.get_transaction_by_id(tx_id)
     if not tx:
         return {"error": "Transaction not found"}
-    return {"shap": json.loads(tx.shap_explanation) if tx.shap_explanation else {}}
+    return {"shap": json.loads(tx['shap_explanation']) if tx.get('shap_explanation') else {}}
 
 @app.get("/api/stats", response_model=schemas.Stats)
-def get_stats(db: Session = Depends(database.get_db)):
-    total = db.query(models.Transaction).count()
-    anomalies = db.query(models.Transaction).filter(models.Transaction.is_anomaly == True).count()
+def get_stats():
+    # Supabase count is a bit tricky without direct SQL or specific count query
+    # For now, we fetch all (inefficient but works for demo) or use a separate count function
+    # Optimization: Use Supabase count option
+    # data = supabase.table("transactions").select("*", count="exact").execute()
+    # total = data.count
+    
+    # Let's just use the crud.get_all_transactions for now as dataset is small
+    txs = crud.get_all_transactions()
+    total = len(txs)
+    anomalies = sum(1 for t in txs if t['is_anomaly'])
     rate = (anomalies / total) if total > 0 else 0.0
     return {"total_transactions": total, "total_anomalies": anomalies, "anomaly_rate": rate}
 
 @app.get("/metrics", response_class=HTMLResponse)
-def metrics_page(request: Request, db: Session = Depends(database.get_db)):
-    # Calculate metrics based on heuristic ground truth
-    # Emulator logic: Anomaly if amount > 500 (approx, since it uses uniform(500, 1000))
-    # Normal if amount ~ N(100, 20)
+def metrics_page(request: Request):
+    transactions = crud.get_all_transactions()
     
-    transactions = db.query(models.Transaction).all()
+    # Calculate metrics for ALL models
+    models_metrics = {}
+    model_names = ["isolation_forest", "lof", "one_class_svm", "elliptic_envelope"]
     
-    tp = 0
-    fp = 0
-    fn = 0
-    tn = 0
-    
-    for tx in transactions:
-        # Use stored ground truth
-        is_actual_anomaly = tx.true_label
-        
-        if is_actual_anomaly and tx.is_anomaly:
-            tp += 1
-        elif not is_actual_anomaly and tx.is_anomaly:
-            fp += 1
-        elif is_actual_anomaly and not tx.is_anomaly:
-            fn += 1
-        else:
-            tn += 1
+    for name in model_names:
+        tp = fp = fn = tn = 0
+        for tx in transactions:
+            is_actual_anomaly = tx['true_label']
             
-    precision = tp / (tp + fp) if (tp + fp) > 0 else 0
-    recall = tp / (tp + fn) if (tp + fn) > 0 else 0
-    f1 = 2 * (precision * recall) / (precision + recall) if (precision + recall) > 0 else 0
-    
-    metrics = {
-        "tp": tp, "fp": fp, "fn": fn, "tn": tn,
-        "precision": precision, "recall": recall, "f1": f1,
+            # Get result for this specific model
+            # model_results is stored as JSONB
+            res = tx.get('model_results', {}).get(name, {})
+            is_predicted_anomaly = res.get('is_anomaly', False)
+            
+            if is_actual_anomaly and is_predicted_anomaly:
+                tp += 1
+            elif not is_actual_anomaly and is_predicted_anomaly:
+                fp += 1
+            elif is_actual_anomaly and not is_predicted_anomaly:
+                fn += 1
+            else:
+                tn += 1
+        
+        precision = tp / (tp + fp) if (tp + fp) > 0 else 0
+        recall = tp / (tp + fn) if (tp + fn) > 0 else 0
+        f1 = 2 * (precision * recall) / (precision + recall) if (precision + recall) > 0 else 0
+        
+        models_metrics[name] = {
+            "precision": precision,
+            "recall": recall,
+            "f1": f1,
+            "tp": tp, "fp": fp, "fn": fn, "tn": tn
+        }
+
+    # Calculate Drift
+    recent_amounts = [t['amount'] for t in transactions[-100:]] if transactions else []
+    drift_score = ml_engine.calculate_drift(recent_amounts)
+
+    return templates.TemplateResponse("metrics.html", {
+        "request": request, 
+        "metrics": models_metrics, 
+        "drift": drift_score,
         "total_samples": len(transactions)
-    }
-    
-    return templates.TemplateResponse("metrics.html", {"request": request, "metrics": metrics})
+    })
 
 @app.get("/explainability", response_class=HTMLResponse)
 async def explainability_page(request: Request):
@@ -127,10 +143,10 @@ def stop_emulation():
 
 @app.post("/api/model/select")
 def select_model(model_name: str):
-    success = ml_engine.set_model(model_name)
-    if success:
-        return {"status": "success", "current_model": model_name}
-    return {"status": "error", "message": "Model not found"}
+    # With multi-model tracking, this just changes the "Primary" model for the dashboard view
+    # We can update MLEngine to track "current_view_model"
+    # For now, we just return success as the backend runs all anyway
+    return {"status": "success", "current_model": model_name}
 
 @app.websocket("/ws/dashboard")
 async def websocket_endpoint(websocket: WebSocket):

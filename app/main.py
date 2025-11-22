@@ -117,13 +117,13 @@ def metrics_page(request: Request):
         }
 
     # Calculate Drift
-    recent_amounts = [t['amount'] for t in transactions[-100:]] if transactions else []
-    drift_score = ml_engine.calculate_drift(recent_amounts)
+    recent_transactions = transactions[-100:] if transactions else []
+    drift_metrics = ml_engine.calculate_drift(recent_transactions)
 
     return templates.TemplateResponse("metrics.html", {
         "request": request, 
         "metrics": models_metrics, 
-        "drift": drift_score,
+        "drift": drift_metrics,
         "total_samples": len(transactions)
     })
 

@@ -22,4 +22,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
   CMD python -c "import requests; requests.get('http://localhost:${PORT:-8001}/health')"
 
 # Run the service
-CMD uvicorn ml_service.ml_service:app --host 0.0.0.0 --port ${PORT:-8001}
+CMD uvicorn ml_service.ml_service:app --host 0.0.0.0 --port 8000

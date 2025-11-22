@@ -133,7 +133,3 @@ async def debug_info():
         "available_models": list(ml_engine.models.keys()) if ml_engine.is_fitted else [],
         "message": "Models are fitted and ready" if ml_engine.is_fitted else "Models not fitted yet - will fit on first prediction"
     }
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8001)

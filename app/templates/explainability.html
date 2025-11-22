@@ -6,28 +6,28 @@
 <div class="p-6 max-w-4xl mx-auto space-y-8">
     <h2 class="text-3xl font-bold text-teal-400">Model Interpretability & Explainability</h2>
 
-    <section class="bg-gray-800 p-6 rounded-lg border border-gray-700">
+    <section class="bg-white p-6 rounded-lg border border-gray-200">
         <h3 class="text-xl font-semibold mb-4">Feature Importance</h3>
-        <p class="text-gray-300 mb-4">
+        <p class="text-gray-700 mb-4">
             Our anomaly detection models are trained primarily on the <strong>Transaction Amount</strong> feature.
             While <strong>Location</strong> is recorded, it is currently used for metadata purposes.
             The core assumption is that normal transactions follow a specific statistical distribution (Gaussian),
             and significant deviations from this distribution are flagged as anomalies.
         </p>
-        <ul class="list-disc list-inside text-gray-400 space-y-2">
+        <ul class="list-disc list-inside text-gray-600 space-y-2">
             <li><strong>Amount:</strong> The primary driver. Normal range is ~$80-$120. Anomalies are >$500.</li>
             <li><strong>Time:</strong> Implicitly used in time-series visualization, but models are currently
                 point-in-time detectors.</li>
         </ul>
     </section>
 
-    <section class="bg-gray-800 p-6 rounded-lg border border-gray-700">
+    <section class="bg-white p-6 rounded-lg border border-gray-200">
         <h3 class="text-xl font-semibold mb-4">Model Logic Explained</h3>
 
         <div class="space-y-6">
             <div>
                 <h4 class="text-lg font-medium text-teal-300">Isolation Forest</h4>
-                <p class="text-sm text-gray-400 mt-1">
+                <p class="text-sm text-gray-600 mt-1">
                     Isolates observations by randomly selecting a feature and then randomly selecting a split value
                     between the maximum and minimum values of the selected feature. Anomalies are susceptible to
                     isolation
@@ -37,7 +37,7 @@
 
             <div>
                 <h4 class="text-lg font-medium text-teal-300">Local Outlier Factor (LOF)</h4>
-                <p class="text-sm text-gray-400 mt-1">
+                <p class="text-sm text-gray-600 mt-1">
                     Measures the local deviation of density of a given data point with respect to its neighbors.
                     It is local in that the anomaly score depends on how isolated the object is with respect to the
                     surrounding neighborhood.
@@ -46,7 +46,7 @@
 
             <div>
                 <h4 class="text-lg font-medium text-teal-300">One-Class SVM</h4>
-                <p class="text-sm text-gray-400 mt-1">
+                <p class="text-sm text-gray-600 mt-1">
                     Learns a decision function for novelty detection: classifying new data as similar or different to
                     the training set.
                     It maps input data into a high-dimensional feature space and iteratively finds the maximal margin
@@ -57,7 +57,7 @@
 
             <div>
                 <h4 class="text-lg font-medium text-teal-300">Robust Covariance (Elliptic Envelope)</h4>
-                <p class="text-sm text-gray-400 mt-1">
+                <p class="text-sm text-gray-600 mt-1">
                     Assumes the data is Gaussian distributed and fits a robust covariance estimate to the data,
                     ignoring outliers. It defines an ellipse around the central data points; anything outside is an
                     anomaly.

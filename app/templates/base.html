@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 
 <head>
     <meta charset="UTF-8">
@@ -12,7 +12,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script>
         tailwind.config = {
-            darkMode: 'class',
             theme: {
                 extend: {
                     fontFamily: {
@@ -20,15 +19,16 @@
                     },
                     colors: {
                         gray: {
-                            900: '#0a0a0a',
-                            850: '#121212',
-                            800: '#1a1a1a',
-                            750: '#252525',
-                            700: '#333333',
+                            50: '#fafafa',
+                            100: '#f4f4f5',
+                            200: '#e4e4e7',
+                            300: '#d4d4d8',
+                            400: '#a1a1aa',
                         },
                         teal: {
                             400: '#2dd4bf',
                             500: '#14b8a6',
+                            600: '#0d9488',
                         }
                     }
                 }
@@ -38,26 +38,27 @@
     <style>
         body {
             font-family: 'Outfit', sans-serif;
-            background-color: #050505;
-            color: #e5e5e5;
+            background-color: #f8f9fa;
+            color: #1f2937;
         }
 
         .glass {
-            background: rgba(26, 26, 26, 0.6);
+            background: rgba(255, 255, 255, 0.8);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
         }
 
         .glass-hover:hover {
-            background: rgba(255, 255, 255, 0.05);
-            border-color: rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.95);
+            border-color: rgba(0, 0, 0, 0.12);
         }
 
         .sidebar-link.active {
-            background: linear-gradient(90deg, rgba(45, 212, 191, 0.15) 0%, transparent 100%);
+            background: linear-gradient(90deg, rgba(45, 212, 191, 0.1) 0%, transparent 100%);
             border-left: 3px solid #2dd4bf;
-            color: #2dd4bf;
+            color: #0d9488;
         }
 
         /* Custom scrollbar */
@@ -66,40 +67,40 @@
         }
 
         ::-webkit-scrollbar-track {
-            background: #0a0a0a;
+            background: #f4f4f5;
         }
 
         ::-webkit-scrollbar-thumb {
-            background: #333;
+            background: #d4d4d8;
             border-radius: 4px;
         }
 
         ::-webkit-scrollbar-thumb:hover {
-            background: #555;
+            background: #a1a1aa;
         }
     </style>
 </head>
 
-<body class="flex h-screen overflow-hidden bg-[#050505]">
+<body class="flex h-screen overflow-hidden bg-gray-50">
 
     <!-- Sidebar -->
-    <aside class="w-64 glass border-r border-white/10 flex flex-col z-20">
+    <aside class="w-64 glass border-r border-gray-200 flex flex-col z-20">
         <div class="p-6 flex items-center space-x-3">
-            <div
+            <!-- <div
                 class="w-8 h-8 bg-gradient-to-br from-teal-400 to-blue-500 rounded-lg flex items-center justify-center shadow-lg shadow-teal-500/20">
                 <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z">
                     </path>
                 </svg>
-            </div>
-            <span class="text-xl font-bold tracking-tight text-white">Anomaly<span
-                    class="text-teal-400">AI</span></span>
+            </div> -->
+            <span class="text-xl font-bold tracking-tight text-gray-800">Realtime <span class="text-teal-600">
+                    Anomaly</span></span>
         </div>
 
         <nav class="flex-1 px-4 space-y-2 mt-4">
             <a href="/"
-                class="sidebar-link block py-3 px-4 rounded-lg transition duration-300 text-gray-400 hover:text-white {% if request.url.path == '/' %}active{% endif %}">
+                class="sidebar-link block py-3 px-4 rounded-lg transition duration-300 text-gray-600 hover:text-gray-900 {% if request.url.path == '/' %}active{% endif %}">
                 <div class="flex items-center space-x-3">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -110,7 +111,7 @@
                 </div>
             </a>
             <a href="/users"
-                class="sidebar-link block py-3 px-4 rounded-lg transition duration-300 text-gray-400 hover:text-white {% if request.url.path == '/users' %}active{% endif %}">
+                class="sidebar-link block py-3 px-4 rounded-lg transition duration-300 text-gray-600 hover:text-gray-900 {% if request.url.path == '/users' %}active{% endif %}">
                 <div class="flex items-center space-x-3">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -121,7 +122,7 @@
                 </div>
             </a>
             <a href="/transactions"
-                class="sidebar-link block py-3 px-4 rounded-lg transition duration-300 text-gray-400 hover:text-white {% if request.url.path == '/transactions' %}active{% endif %}">
+                class="sidebar-link block py-3 px-4 rounded-lg transition duration-300 text-gray-600 hover:text-gray-900 {% if request.url.path == '/transactions' %}active{% endif %}">
                 <div class="flex items-center space-x-3">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -132,7 +133,7 @@
                 </div>
             </a>
             <a href="/metrics"
-                class="sidebar-link block py-3 px-4 rounded-lg transition duration-300 text-gray-400 hover:text-white {% if request.url.path == '/metrics' %}active{% endif %}">
+                class="sidebar-link block py-3 px-4 rounded-lg transition duration-300 text-gray-600 hover:text-gray-900 {% if request.url.path == '/metrics' %}active{% endif %}">
                 <div class="flex items-center space-x-3">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -143,7 +144,7 @@
                 </div>
             </a>
             <a href="/explainability"
-                class="sidebar-link block py-3 px-4 rounded-lg transition duration-300 text-gray-400 hover:text-white {% if request.url.path == '/explainability' %}active{% endif %}">
+                class="sidebar-link block py-3 px-4 rounded-lg transition duration-300 text-gray-600 hover:text-gray-900 {% if request.url.path == '/explainability' %}active{% endif %}">
                 <div class="flex items-center space-x-3">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -154,7 +155,7 @@
                 </div>
             </a>
             <a href="/design"
-                class="sidebar-link block py-3 px-4 rounded-lg transition duration-300 text-gray-400 hover:text-white {% if request.url.path == '/design' %}active{% endif %}">
+                class="sidebar-link block py-3 px-4 rounded-lg transition duration-300 text-gray-600 hover:text-gray-900 {% if request.url.path == '/design' %}active{% endif %}">
                 <div class="flex items-center space-x-3">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -166,20 +167,19 @@
             </a>
         </nav>
 
-        <div class="p-4 border-t border-white/10">
+        <div class="p-4 border-t border-gray-200">
             <div class="flex items-center space-x-3">
                 <div class="w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-pink-500"></div>
                 <div>
-                    <p class="text-sm font-medium text-white">Admin User</p>
-                    <p class="text-xs text-gray-400">View Profile</p>
+                    <p class="text-sm font-medium text-gray-800">Admin User</p>
+                    <p class="text-xs text-gray-500">View Profile</p>
                 </div>
             </div>
         </div>
     </aside>
 
     <!-- Main Content -->
-    <main
-        class="flex-1 overflow-y-auto relative bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-gray-800/50 via-[#050505] to-[#050505]">
+    <main class="flex-1 overflow-y-auto relative bg-gray-50">
         {% block content %}{% endblock %}
     </main>
 

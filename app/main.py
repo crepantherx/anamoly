@@ -78,7 +78,7 @@ def metrics_page(request: Request):
     
     # Calculate metrics for ALL models
     models_metrics = {}
-    model_names = ["isolation_forest", "lof", "one_class_svm", "elliptic_envelope"]
+    model_names = ["isolation_forest", "lof", "one_class_svm", "elliptic_envelope", "mlp"]
     
     for name in model_names:
         tp = fp = fn = tn = 0

@@ -77,7 +77,8 @@
             <h3 class="text-xl font-semibold mb-4 text-teal-400">Data Flow</h3>
             <ol class="list-decimal list-inside text-gray-300 space-y-2">
                 <li><strong>Emulator</strong> creates a transaction (Normal or Anomaly).</li>
-                <li><strong>ML Engine</strong> predicts score and class using the active model.</li>
+                <li><strong>ML Engine</strong> predicts score and class using the active model (Isolation Forest, LOF,
+                    SVM, Robust Covariance, or Neural Network).</li>
                 <li>Result is saved to <strong>SQLite Database</strong>.</li>
                 <li><strong>WebSocket Manager</strong> broadcasts the new data point.</li>
                 <li><strong>Frontend</strong> receives JSON and updates charts/stats instantly.</li>
@@ -89,11 +90,54 @@
             <ul class="list-disc list-inside text-gray-300 space-y-2">
                 <li><strong>Language:</strong> Python 3.10</li>
                 <li><strong>Framework:</strong> FastAPI (High performance async)</li>
-                <li><strong>ML Libraries:</strong> Scikit-Learn, NumPy</li>
+                <li><strong>ML Libraries:</strong> Scikit-Learn (Isolation Forest, MLP, etc.), NumPy</li>
                 <li><strong>Database:</strong> SQLAlchemy ORM + SQLite</li>
                 <li><strong>Frontend:</strong> TailwindCSS, Chart.js</li>
                 <li><strong>Deployment:</strong> Docker & Docker Compose</li>
             </ul>
+        </div>
+    </div>
+    <div class="mt-12 bg-gray-800 p-6 rounded-lg border border-gray-700">
+        <h3 class="text-xl font-semibold mb-4 text-teal-400">Neural Network Architecture (MLP)</h3>
+        <div class="flex flex-col md:flex-row items-center justify-center space-y-6 md:space-y-0 md:space-x-12">
+            <!-- Input Layer -->
+            <div class="text-center">
+                <div
+                    class="w-24 h-24 bg-blue-900/30 border border-blue-500 rounded-full flex items-center justify-center shadow-[0_0_10px_rgba(59,130,246,0.3)]">
+                    <span class="text-blue-300 font-bold">Input (4)</span>
+                </div>
+                <p class="text-xs text-gray-400 mt-2">Amount, Diff, Hour, Foreign</p>
+            </div>
+            <div class="text-gray-500 text-2xl">→</div>
+
+            <!-- Hidden Layer 1 -->
+            <div class="text-center">
+                <div
+                    class="w-24 h-24 bg-purple-900/30 border border-purple-500 rounded-full flex items-center justify-center shadow-[0_0_10px_rgba(168,85,247,0.3)]">
+                    <span class="text-purple-300 font-bold">Dense (64)</span>
+                </div>
+                <p class="text-xs text-gray-400 mt-2">ReLU Activation</p>
+            </div>
+            <div class="text-gray-500 text-2xl">→</div>
+
+            <!-- Hidden Layer 2 -->
+            <div class="text-center">
+                <div
+                    class="w-24 h-24 bg-purple-900/30 border border-purple-500 rounded-full flex items-center justify-center shadow-[0_0_10px_rgba(168,85,247,0.3)]">
+                    <span class="text-purple-300 font-bold">Dense (32)</span>
+                </div>
+                <p class="text-xs text-gray-400 mt-2">ReLU Activation</p>
+            </div>
+            <div class="text-gray-500 text-2xl">→</div>
+
+            <!-- Output Layer -->
+            <div class="text-center">
+                <div
+                    class="w-24 h-24 bg-red-900/30 border border-red-500 rounded-full flex items-center justify-center shadow-[0_0_10px_rgba(239,68,68,0.3)]">
+                    <span class="text-red-300 font-bold">Output (1)</span>
+                </div>
+                <p class="text-xs text-gray-400 mt-2">Sigmoid (Prob)</p>
+            </div>
         </div>
     </div>
 </div>

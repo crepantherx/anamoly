@@ -4,6 +4,7 @@ from sklearn.ensemble import IsolationForest
 from sklearn.neighbors import LocalOutlierFactor
 from sklearn.svm import OneClassSVM
 from sklearn.covariance import EllipticEnvelope
+from sklearn.neural_network import MLPClassifier
 import shap
 import json
 
@@ -13,7 +14,8 @@ class MLEngine:
             "isolation_forest": IsolationForest(contamination=0.1, random_state=42),
             "lof": LocalOutlierFactor(n_neighbors=20, contamination=0.1, novelty=True),
             "one_class_svm": OneClassSVM(nu=0.1, kernel="rbf", gamma=0.1),
-            "elliptic_envelope": EllipticEnvelope(contamination=0.1, random_state=42)
+            "elliptic_envelope": EllipticEnvelope(contamination=0.1, random_state=42),
+            "mlp": MLPClassifier(hidden_layer_sizes=(64, 32), max_iter=500, random_state=42)
         }
         self.is_fitted = False
         self.training_data = None
@@ -30,12 +32,23 @@ class MLEngine:
         # Generate synthetic data for training
         n_samples = 1000
         X_train = np.zeros((n_samples, 4))
+        y_train = np.zeros(n_samples) # 0 = Normal, 1 = Anomaly
         
-        # Normal behavior
-        X_train[:, 0] = np.random.normal(100, 20, n_samples) # Amount
-        X_train[:, 1] = np.random.normal(0, 10, n_samples)   # Diff
-        X_train[:, 2] = np.random.randint(8, 22, n_samples)  # Hour
-        X_train[:, 3] = np.random.choice([0, 1], n_samples, p=[0.9, 0.1]) 
+        # Normal behavior (90%)
+        n_normal = int(0.9 * n_samples)
+        X_train[:n_normal, 0] = np.random.normal(100, 20, n_normal) # Amount
+        X_train[:n_normal, 1] = np.random.normal(0, 10, n_normal)   # Diff
+        X_train[:n_normal, 2] = np.random.randint(8, 22, n_normal)  # Hour
+        X_train[:n_normal, 3] = np.random.choice([0, 1], n_normal, p=[0.9, 0.1]) 
+        y_train[:n_normal] = 0
+
+        # Anomalous behavior (10%) - Needed for MLP training
+        n_anom = n_samples - n_normal
+        X_train[n_normal:, 0] = np.random.normal(500, 100, n_anom) # High Amount
+        X_train[n_normal:, 1] = np.random.normal(400, 50, n_anom)  # High Diff
+        X_train[n_normal:, 2] = np.random.randint(0, 24, n_anom)   # Any Hour
+        X_train[n_normal:, 3] = 1 # Mostly foreign
+        y_train[n_normal:] = 1
         
         self.training_data = X_train
         self.training_mean = np.mean(X_train[:, 0]) # Track Amount mean for drift
@@ -43,7 +56,10 @@ class MLEngine:
 
         for name, model in self.models.items():
             try:
-                model.fit(X_train)
+                if name == "mlp":
+                    model.fit(X_train, y_train)
+                else:
+                    model.fit(X_train) # Unsupervised models ignore y
             except Exception as e:
                 print(f"Error fitting {name}: {e}")
         
@@ -61,9 +77,26 @@ class MLEngine:
         
         for name, model in self.models.items():
             try:
-                prediction = model.predict(X)[0]
-                is_anomaly = True if prediction == -1 else False
-                score = model.score_samples(X)[0]
+                if name == "mlp":
+                    # MLP predicts class 0 or 1
+                    prediction = model.predict(X)[0]
+                    is_anomaly = True if prediction == 1 else False
+                    # Use probability of class 1 as score (negated to match others where lower is worse? No, others are: -1 is anomaly)
+                    # Let's standardize: score < 0 is anomaly usually.
+                    # For MLP, prob(1) > 0.5 is anomaly. 
+                    # To map to "score_samples" style (higher = normal), we can use -prob(1).
+                    # Or just return raw probability.
+                    # Let's stick to the convention: is_anomaly boolean is key.
+                    # For score, let's use -prob(anomaly) so that lower is more anomalous?
+                    # Wait, IsolationForest: lower score = more anomalous.
+                    # Let's use -prob(1) as score. Normal (prob 0) -> 0. Anomaly (prob 1) -> -1.
+                    probs = model.predict_proba(X)[0]
+                    score = -probs[1] 
+                else:
+                    prediction = model.predict(X)[0]
+                    is_anomaly = True if prediction == -1 else False
+                    score = model.score_samples(X)[0]
+                
                 results[name] = {"is_anomaly": is_anomaly, "score": float(score)}
                 
                 # Generate SHAP only for Isolation Forest for the UI explanation

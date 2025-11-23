@@ -71,17 +71,9 @@ def get_explanation(tx_id: int):
     return {"shap": json.loads(tx['shap_explanation']) if tx.get('shap_explanation') else {}}
 
 @app.get("/api/stats", response_model=schemas.Stats)
+@app.get("/api/stats", response_model=schemas.Stats)
 def get_stats():
-    # Supabase count is a bit tricky without direct SQL or specific count query
-    # For now, we fetch all (inefficient but works for demo) or use a separate count function
-    # Optimization: Use Supabase count option
-    # data = supabase.table("transactions").select("*", count="exact").execute()
-    # total = data.count
-    
-    # Let's just use the crud.get_all_transactions for now as dataset is small
-    txs = crud.get_all_transactions()
-    total = len(txs)
-    anomalies = sum(1 for t in txs if t['is_anomaly'])
+    total, anomalies = crud.get_transaction_stats()
     rate = (anomalies / total) if total > 0 else 0.0
     return {"total_transactions": total, "total_anomalies": anomalies, "anomaly_rate": rate}
 

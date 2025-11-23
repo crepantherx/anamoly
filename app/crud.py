@@ -22,7 +22,19 @@ def get_recent_transactions(limit: int = 100):
     data = supabase.table("transactions").select("*, users(name)").order("timestamp", desc=True).limit(limit).execute()
     return data.data
 
+def get_transaction_stats():
+    # Efficient count query
+    total_res = supabase.table("transactions").select("*", count="exact", head=True).execute()
+    total = total_res.count
+    
+    # Count anomalies
+    anomalies_res = supabase.table("transactions").select("*", count="exact", head=True).eq("is_anomaly", True).execute()
+    anomalies = anomalies_res.count
+    
+    return total, anomalies
+
 def get_all_transactions():
+    # Warning: This hits default limit of 1000
     data = supabase.table("transactions").select("*").execute()
     return data.data
 

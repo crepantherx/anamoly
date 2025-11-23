@@ -221,7 +221,7 @@
 
     // --- Polling System (Vercel Compatible) ---
     // WebSockets don't work well on Vercel serverless, so we use polling
-    
+
     let lastTxId = 0;
 
     async function pollDashboardData() {
@@ -239,35 +239,43 @@
             const txRes = await fetch('/api/recent-transactions');
             if (txRes.ok) {
                 const transactions = await txRes.json();
-                
-                // Process new transactions
-                // We reverse to process oldest first if we fetched a batch
-                // But for chart we just want to ensure we don't duplicate
-                
-                // Sort by ID to be sure
+
+                // Sort by ID to process in chronological order
                 transactions.sort((a, b) => a.id - b.id);
 
+                let hasNewData = false;
                 transactions.forEach(tx => {
                     if (tx.id > lastTxId) {
                         updateDashboard(tx);
                         lastTxId = tx.id;
+                        hasNewData = true;
                     }
                 });
+
+                if (hasNewData) {
+                    txChart.update('none'); // Update chart once per batch
+                }
             }
         } catch (e) {
             console.error("Polling error:", e);
         }
-        
+
         // Poll every 2 seconds
         setTimeout(pollDashboardData, 2000);
     }
 
     function updateDashboard(data) {
         // Update Chart
-        // Ensure timestamp is valid
         const time = new Date(data.timestamp);
-        const point = { x: time, y: data.amount, user: data.user_id, score: data.anomaly_score }; 
-        // Note: user_id might need mapping to name if not joined, but for chart ID is fine or we can fix in CRUD
+        // Handle user name from joined table
+        const userName = data.users ? data.users.name : `User ${data.user_id}`;
+
+        const point = {
+            x: time,
+            y: data.amount,
+            user: userName,
+            score: data.anomaly_score
+        };
 
         if (data.is_anomaly) {
             txChart.data.datasets[1].data.push(point);
@@ -283,7 +291,7 @@
         if (totalPoints > maxPoints) {
             const d0 = txChart.data.datasets[0].data[0];
             const d1 = txChart.data.datasets[1].data[0];
-            
+
             // Remove the oldest point
             if (d0 && d1) {
                 if (d0.x < d1.x) txChart.data.datasets[0].data.shift();
@@ -294,8 +302,6 @@
                 txChart.data.datasets[1].data.shift();
             }
         }
-
-        txChart.update('none'); // 'none' mode for performance
     }
 
     // Start Polling
@@ -305,15 +311,25 @@
         const feed = document.getElementById('alerts-feed');
         const alertDiv = document.createElement('div');
         alertDiv.className = 'bg-red-500/10 border-l-4 border-red-500 p-3 rounded-r-lg flex justify-between items-start animate-fade-in';
+
+        // Fix score display (handle null/undefined)
+        const score = data.anomaly_score ? data.anomaly_score.toFixed(4) : 'N/A';
+
         alertDiv.innerHTML = `
-            <div class="text-sm text-gray-700 mt-1">Amount: $${data.amount}</div>
-            <div class="text-xs text-gray-500 mt-1">Score: ${data.score} | Loc: ${data.location}</div>
+            <div class="text-sm text-gray-700 mt-1">Amount: $${data.amount.toFixed(2)}</div>
+            <div class="text-xs text-gray-500 mt-1">Score: ${score} | Loc: ${data.location}</div>
         `;
         feed.prepend(alertDiv);
 
-        // Remove "No anomalies" text if present
-        if (feed.children.length > 0 && feed.children[feed.children.length - 1].innerText.includes("No anomalies")) {
-            feed.children[feed.children.length - 1].remove();
+        // Remove "Waiting for data..." text if present
+        const waitingText = Array.from(feed.children).find(child => child.innerText.includes("Waiting for data"));
+        if (waitingText) {
+            waitingText.remove();
+        }
+
+        // Limit alerts to 20
+        if (feed.children.length > 20) {
+            feed.lastElementChild.remove();
         }
     }
 

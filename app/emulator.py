@@ -9,13 +9,20 @@ fake = Faker()
 
 class Emulator:
     def __init__(self):
-        self.is_running = False
+        # self.is_running is now just a local cache, source of truth is DB
         self.anomaly_probability = 0.1
         self.users_created = False
 
+    @property
+    def is_running(self):
+        return crud.get_emulation_status_from_db()
+
     def create_initial_users(self):
         users = crud.get_all_users()
-        if users and len(users) > 0:
+        # Filter out system user
+        real_users = [u for u in users if u['email'] != crud.EMULATOR_USER_EMAIL]
+        
+        if real_users and len(real_users) > 0:
             self.users_created = True
             return
 
@@ -32,18 +39,28 @@ class Emulator:
         self.users_created = True
 
     async def start_emulation(self, broadcast_callback):
-        self.is_running = True
+        # Set DB status to running
+        crud.set_emulation_status_in_db(True)
         print("Emulation started...")
         
         self.create_initial_users()
 
-        while self.is_running:
+        while True:
+            # Check DB status every loop to see if we should stop
+            # This allows stopping from a different instance
+            if not crud.get_emulation_status_from_db():
+                print("Emulation stopped by DB flag.")
+                break
+
             try:
                 # Pick random user
                 users = crud.get_all_users()
-                if not users:
+                # Filter out system user
+                real_users = [u for u in users if u['email'] != crud.EMULATOR_USER_EMAIL]
+                
+                if not real_users:
                     break
-                user = random.choice(users)
+                user = random.choice(real_users)
                 
                 timestamp = datetime.datetime.utcnow()
                 
@@ -96,7 +113,8 @@ class Emulator:
                 new_tx = crud.create_transaction(tx_data)
                 
                 if new_tx:
-                    # Broadcast via WebSocket
+                    # Broadcast via WebSocket (if connected)
+                    # Note: With polling, this is less critical but good for local dev
                     data = {
                         "id": new_tx['id'],
                         "user": user['name'],
@@ -115,7 +133,8 @@ class Emulator:
             await asyncio.sleep(random.uniform(0.5, 2.0))
 
     def stop_emulation(self):
-        self.is_running = False
-        print("Emulation stopped.")
+        # Just update DB, the loop will catch it
+        crud.set_emulation_status_in_db(False)
+        print("Emulation stop signal sent to DB.")
 
 emulator = Emulator()

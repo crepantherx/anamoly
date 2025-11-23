@@ -152,6 +152,7 @@ async def design_page(request: Request):
 @app.post("/api/emulation/start")
 async def start_emulation(background_tasks: BackgroundTasks):
     if not emulator.is_running:
+        # Start the background task
         background_tasks.add_task(emulator.start_emulation, manager.broadcast)
         return {"status": "started"}
     return {"status": "already running"}
@@ -163,6 +164,7 @@ def stop_emulation():
 
 @app.get("/api/emulation/status")
 def get_emulation_status():
+    # Check the DB for the source of truth
     return {"status": "running" if emulator.is_running else "stopped"}
 
 @app.post("/api/model/select")

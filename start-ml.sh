@@ -1,7 +1,7 @@
 #!/bin/sh
 # Startup script for ML service
 
-# Use Railway's PORT if set, otherwise default to 8001
+# Use PORT environment variable if set (Render/Heroku/etc), otherwise default to 8001
 PORT=${PORT:-8001}
 
 echo "Starting ML service on port $PORT..."

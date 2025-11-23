@@ -1,24 +1,13 @@
 # Render.com configuration
-# Deploys both web service and ML service
+# Deploys ML service only (Frontend is on Vercel)
 
 services:
-  # Main Website (Dashboard)
-  - type: web
-    name: anomaly-web
-    runtime: docker
-    dockerfilePath: ./Dockerfile
-    dockerContext: .
-    envVars:
-      - key: ML_SERVICE_URL
-        value: https://api-for-anomaly-production.up.railway.app
-      - key: SUPABASE_URL
-        sync: false
-      - key: SUPABASE_KEY
-        sync: false
-
   # ML Prediction Service  
   - type: web
     name: anomaly-ml
     runtime: docker
     dockerfilePath: ./Dockerfile.ml
     dockerContext: .
+    envVars:
+      - key: PORT
+        value: 8001

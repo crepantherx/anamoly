@@ -179,6 +179,13 @@ async def retrain_models():
     result = await ml_client.retrain_from_database(transactions)
     return result
 
+@app.get("/api/recent-transactions")
+def get_recent_transactions_api():
+    """API endpoint for polling recent transactions"""
+    transactions = crud.get_recent_transactions(50)
+    # Convert to list of dicts if needed, but crud returns dicts usually
+    return transactions
+
 @app.websocket("/ws/dashboard")
 async def websocket_endpoint(websocket: WebSocket):
     await manager.connect(websocket)

@@ -219,24 +219,55 @@
         }
     });
 
-    // --- WebSocket ---
-    const wsProtocol = window.location.protocol === "https:" ? "wss" : "ws";
-    const ws = new WebSocket(`${wsProtocol}://${window.location.host}/ws/dashboard`);
+    // --- Polling System (Vercel Compatible) ---
+    // WebSockets don't work well on Vercel serverless, so we use polling
+    
+    let lastTxId = 0;
 
-    ws.onmessage = function (event) {
-        const data = JSON.parse(event.data);
-        updateDashboard(data);
-    };
+    async function pollDashboardData() {
+        try {
+            // 1. Fetch Stats
+            const statsRes = await fetch('/api/stats');
+            if (statsRes.ok) {
+                const data = await statsRes.json();
+                totalTx = data.total_transactions;
+                totalAnomalies = data.total_anomalies;
+                updateStatsUI();
+            }
+
+            // 2. Fetch Recent Transactions
+            const txRes = await fetch('/api/recent-transactions');
+            if (txRes.ok) {
+                const transactions = await txRes.json();
+                
+                // Process new transactions
+                // We reverse to process oldest first if we fetched a batch
+                // But for chart we just want to ensure we don't duplicate
+                
+                // Sort by ID to be sure
+                transactions.sort((a, b) => a.id - b.id);
+
+                transactions.forEach(tx => {
+                    if (tx.id > lastTxId) {
+                        updateDashboard(tx);
+                        lastTxId = tx.id;
+                    }
+                });
+            }
+        } catch (e) {
+            console.error("Polling error:", e);
+        }
+        
+        // Poll every 2 seconds
+        setTimeout(pollDashboardData, 2000);
+    }
 
     function updateDashboard(data) {
-        // Update Stats
-        totalTx++;
-        if (data.is_anomaly) totalAnomalies++;
-        updateStatsUI();
-
         // Update Chart
+        // Ensure timestamp is valid
         const time = new Date(data.timestamp);
-        const point = { x: time, y: data.amount, user: data.user, score: data.score };
+        const point = { x: time, y: data.amount, user: data.user_id, score: data.anomaly_score }; 
+        // Note: user_id might need mapping to name if not joined, but for chart ID is fine or we can fix in CRUD
 
         if (data.is_anomaly) {
             txChart.data.datasets[1].data.push(point);
@@ -252,15 +283,23 @@
         if (totalPoints > maxPoints) {
             const d0 = txChart.data.datasets[0].data[0];
             const d1 = txChart.data.datasets[1].data[0];
+            
+            // Remove the oldest point
             if (d0 && d1) {
                 if (d0.x < d1.x) txChart.data.datasets[0].data.shift();
                 else txChart.data.datasets[1].data.shift();
-            } else if (d0) txChart.data.datasets[0].data.shift();
-            else if (d1) txChart.data.datasets[1].data.shift();
+            } else if (d0) {
+                txChart.data.datasets[0].data.shift();
+            } else if (d1) {
+                txChart.data.datasets[1].data.shift();
+            }
         }
 
-        txChart.update();
+        txChart.update('none'); // 'none' mode for performance
     }
+
+    // Start Polling
+    pollDashboardData();
 
     function addAlert(data) {
         const feed = document.getElementById('alerts-feed');

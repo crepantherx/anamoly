@@ -53,19 +53,35 @@ docker-compose up
 
 ### Step 1: Deploy ML Service (Render.com)
 
-1. Push code to GitHub
-2. Go to [Render.com](https://render.com) and create new "Web Service"
-3. Connect your GitHub repository
-4. Configure:
+You have two options to deploy to Render:
+
+#### Option A: Use Blueprint (Recommended - Easiest)
+Render "Blueprints" automatically read the `render.yaml` file to configure everything for you.
+
+1. Push your code to GitHub.
+2. Go to [Render Dashboard](https://dashboard.render.com/).
+3. Click **New +** and select **Blueprint**.
+4. Connect your GitHub repository.
+5. Render will detect `render.yaml` and show the `anomaly-ml` service.
+6. Click **Apply** to deploy.
+
+#### Option B: Manual Setup
+If you prefer to configure it manually without the YAML file:
+
+1. Go to [Render Dashboard](https://dashboard.render.com/).
+2. Click **New +** and select **Web Service**.
+3. Connect your GitHub repository.
+4. Configure the following settings:
    - **Name**: `anomaly-ml-service`
-   - **Root Directory**: Leave empty (use repo root)
-   - **Environment**: `Docker`
+   - **Runtime**: `Docker`
+   - **Region**: Choose one close to you (e.g., Oregon, Frankfurt)
+   - **Branch**: `main` (or your working branch)
+   - **Root Directory**: `.` (leave as is)
    - **Dockerfile Path**: `Dockerfile.ml`
-   - **Context**: `.`
-   - **Plan**: Free tier
-5. Click "Create Web Service"
-6. Wait for deployment to complete
-7. Copy the service URL (e.g., `https://anomaly-ml-service.onrender.com`)
+   - **Context Directory**: `.`
+   - **Instance Type**: Free
+5. Click **Create Web Service**.
+6. Wait for deployment to complete.
 
 > **Note**: Render's free tier has cold starts (services sleep after 15 min of inactivity). First request may be slow.
 
